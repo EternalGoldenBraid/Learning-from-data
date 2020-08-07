@@ -84,7 +84,7 @@ class Coinsimu:
 
 flips = 10
 n_coins = 10**3
-runs = 10**5
+runs = 10
 v1 = 0
 v_rand = 0
 v_min = 0
@@ -104,9 +104,9 @@ x = np.arange(3)
 axs[0].bar(x, [v1/runs, v_rand/runs, v_min/runs])
 
 e = np.linspace(0,1,100)
-y = 2*np.exp(-2*e**2*n_coins)
+y = 2*np.exp(-2*e**2*1)
 axs[1].plot(e, y, 'red')
-y1 = 2*np.exp(-2*e**2*3)
+y1 = 2*np.exp(-6*e**2)
 axs[1].plot(e, y1, 'green')
 axs[1].set_xticks([0, 0.25, 0.5, 0.75, 1])
 #axs.set_xticklabels(['First', 'Random', 'Least heads'])
