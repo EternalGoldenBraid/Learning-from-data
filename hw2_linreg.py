@@ -2,12 +2,13 @@
 
 import random
 import numpy as np
+from matplotlib import pyplot as plt
 
 # Dimension
 D = 2
 
 # For reproducibility
-#np.random.seed(10)
+np.random.seed(10)
 
 def sign(n):
     if n < 0: return -1
@@ -21,6 +22,31 @@ def distance(x1, y1, x2, y2, x, y):
     # ie. under or above (-1/+1)
     d = (y - y2) * x1 - (x - x2) * y1 + x * y2 - y * x2
     return d
+
+
+def fig():
+    fig, ax = plt.subplots()
+    return fig, ax
+
+def draw(point, fig, ax, t=None):
+    
+    if t != None:
+        plt.ion()
+        ax.set_xlim(-2, 2)
+        ax.set_ylim(-2, 2)
+        ax.plot([t[0], t[2]], [t[1], t[3]], c='green', label='Target function by two points')
+        plt.pause(0.2)
+        fig.canvas.draw()
+
+    # Color points depending on location
+    if point[-1] == -1 : c = 'red'
+    else: c = 'blue'
+
+    ax.scatter(point[0], point[1], c=c)
+
+    plt.pause(0.2)
+    fig.canvas.draw()
+
 
 
 def gen_target():
@@ -39,19 +65,17 @@ def gen_data(n, t):
     data = []
     for i in range(n):
         x, y = np.random.uniform(-1,1, 2)
-        v1 = (t[2]-t[0], t[3]-t[1])   # target function in vector form
-        v2 = (x, y)   # fresh data point in vector form
-        xp = v1[0]*v2[1] - v1[1]*v2[0]  # Cross product
         s = sign(distance(t[0], t[1], t[2], t[3], x, y))
-        if sign(xp) != s: print("Formula error")
-        #if xp > 0:
-        #    print 'on one side'
-        #elif xp < 0:
-        #    print 'on the other'
-        #else:
-        #    print 'on the same line!'
 
         data.append((x, y, sign(distance(t[0], t[1], t[2], t[3], x, y))))
+
+        #if i == 0: 
+        #    fig, ax = fig()
+        #    draw(data[i], t, fig, ax)
+        #elif i == n-1: 
+        #    plt.clf()
+        #    fig, ax = fig()
+        #else: draw(data[i])
 
     # Format data
     inputs = [dt[:-1] for dt in data]
@@ -67,8 +91,13 @@ class Metrics:
     def e_in(self):
         """ Calculate the in sample error of a hypothesis """
         X = np.c_[np.ones(self.data.shape[0]), self.data]
-        e_i = np.linalg.norm(np.dot(X, self.coef_) - self.target)**2/n
-        return e_i
+        #e_i = np.linalg.norm(np.dot(X, self.coef_) - self.target)**2/n
+        Y_hat = [sign(label) for label in np.dot(X, self.coef_)]
+        
+        error = 0
+        for y_hat, y in zip(Y_hat, Y):
+            if y_hat != y: error += 1
+        return error/n
 
     def print_stats():
         print(X_)
@@ -116,8 +145,8 @@ class OLS(Metrics):
         return np.dot(data, self.coef_)
 
 
-exp = 1
-n=10
+exp = 1000
+n=100
 H = []
 # Run the experiment exp times while keeping track of the best hypothesis and 
 print("Generating g's for problem 5")
@@ -148,11 +177,12 @@ for error in H:
     e += error[1]
 
 print("In sample error: ", e/exp)
-print("Mine - 0.01: ", e/exp-0.01)
-print("Mine - 0.1: ", e/exp-0.1)
 print('*'+2**6*'-'+'*')
+print()
 
 
 print("Generating 1000 fresh points for problem 6")
 print(2**6*'-')
 fresh_points = 1000
+
+print('*'+2**6*'-'+'*')
