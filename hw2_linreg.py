@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 D = 2
 
 # For reproducibility
-np.random.seed(10)
+#np.random.seed(10)
 
 def sign(n):
     if n < 0: return -1
@@ -88,16 +88,90 @@ def gen_data(n, t):
 class Metrics:
     """ Report metrics on the OLS"""
 
-    def e_in(self):
+    def e_in(self, X, Y, n):
         """ Calculate the in sample error of a hypothesis """
         X = np.c_[np.ones(self.data.shape[0]), self.data]
-        #e_i = np.linalg.norm(np.dot(X, self.coef_) - self.target)**2/n
         Y_hat = [sign(label) for label in np.dot(X, self.coef_)]
         
         error = 0
         for y_hat, y in zip(Y_hat, Y):
             if y_hat != y: error += 1
         return error/n
+
+    def e_out(self, X_test, Y_test, n_test):
+        """ Calculate the out of sample error of a hypothesis """
+        
+        X_test = np.c_[np.ones(X_test.shape[0]), X_test]
+        Y_hat = [sign(prediction) for prediction in np.dot(X_test, self.coef_)]
+        error = 0
+        for label, prediction in zip(Y_test, Y_hat):
+
+            if label != prediction: error += 1
+
+        return error/n_test
+
+    def e_avg(self, exp, n, n_test):
+        """ Print out the average in sample error 
+        and out of sample error over exp number of experiments.
+        param exp: Number of experiments to run
+        param n: Number of sample points to generate
+        param n_test: Number of test points to test out of sample error on
+        param G: The set of all the final hypotheses 
+        """
+        print("Generating final hypothesise for problem 5")
+        print(2**6*'-')
+
+        # in sample error for each experiment
+        for experiment in range(exp):
+        
+            # Target function a set of four points
+            t = gen_target()
+        
+            # Training data and their labels
+            X, Y = gen_data(n,t)
+        
+            # Find the coefficients
+            #mlr = OLS()
+            g = mlr.fit(X, Y)
+        
+            # Calculate the in sample error for the current hypothesis 
+            # and store it along with the hypothesis
+            e_in_ = mlr.e_in(X, Y, n)
+
+            # Generate testing points and evaluate with respect to the target function
+            X_test, Y_test = gen_data(n_test, t)
+
+            e_out_ = mlr.e_out(X_test, Y_test, n_test)
+
+            G.append((g, e_in_, e_out_))
+
+            
+        in_sample_error = 0
+        out_sample_error = 0
+        for error in G:
+            in_sample_error += error[1]
+            out_sample_error += error[2]
+        
+        print(f"Average in sample error for {exp} experiments: " \
+                f"{in_sample_error/exp:.4f}")
+        print(f"Average out of sample error for {exp} experiments: " \
+                f"{out_sample_error/exp:.4f}")
+        print('*'+2**6*'-'+'*')
+        print()
+
+    def out_of_sample_error(self, N):
+        """
+        Estimate the out of sample error by evaluating against frest data points
+        """
+        print("""
+        Estimating the coefficients predicitions against {N} data points for problem 6
+        """)
+        print(2**6*'-')
+
+        for i in range(N):
+            # Training data and their labels
+            X, Y = gen_data(N, t)
+
 
     def print_stats():
         print(X_)
@@ -113,6 +187,7 @@ class OLS(Metrics):
         self.coef_ = None
         self.data = None
         self.target = None
+        self.t = None
 
 
     def fit(self, X, Y):
@@ -141,48 +216,18 @@ class OLS(Metrics):
         """ Output the prediction of a final hypothesis given an input X
         param X: 2D Numpy array
         """
-        data = np.c_[np.ones(X.shape[0]), X]
-        return np.dot(data, self.coef_)
+        #data = np.c_[np.ones(X.shape[0]), X]
+        return np.dot(data, self.coef_[1:])
 
 
-exp = 1000
-n=100
-H = []
-# Run the experiment exp times while keeping track of the best hypothesis and 
-print("Generating g's for problem 5")
-print(2**6*'-')
-# in sample error for each experiment
-for experiment in range(exp):
+mlr = OLS()
 
-    # Target function a set of four points
-    t = gen_target()
-
-    # input data and labels 
-    X, Y = gen_data(n,t)
-
-    # Find the coefficient 
-    mlr = OLS()
-    g = mlr.fit(X, Y)
-    #mlr.predict(X)
-
-    # Calculate the in sample error for the current hypothesis and store it along with
-    # the hypothesis
-    e_in = mlr.e_in()
-    H.append((g, e_in))
-    
-    #print(f"In sample error for {experiment+1}. experiment {e_in}")
-
-e = 0
-for error in H:
-    e += error[1]
-
-print("In sample error: ", e/exp)
-print('*'+2**6*'-'+'*')
-print()
+G=[] # An empty set for storing the final hypothesise
+# Calculate the average in sample error for 1000 experiments on N training points
+# and out of sample error on n_test fresh data points.
+experiments = 1000
+N = 100
+n_test = 1000
+mlr.e_avg(experiments, N, n_test)
 
 
-print("Generating 1000 fresh points for problem 6")
-print(2**6*'-')
-fresh_points = 1000
-
-print('*'+2**6*'-'+'*')
