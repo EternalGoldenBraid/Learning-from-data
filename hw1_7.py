@@ -145,7 +145,8 @@ def train(x, D_points, ax, fig):
             for point in x:
 
                 # Test if h(x) = y, y being point[-1]
-                h = hypothesize(w, point)
+                #h = hypothesize(w, point)
+                h = sign(w[0] * point[0] + w[1] * point[1] + w[2] * point[2])
                 if h != point[-1]:
                     # Adjust the weights
                     w[0] = w[0] + point[-1] * point[0]
